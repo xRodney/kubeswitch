@@ -74,6 +74,9 @@ type Cluster struct {
 	Server string `yaml:"server"`
 	// Insecure defines if the API server can be accessed with no CA checks
 	Insecure bool `yaml:"insecure-skip-tls-verify,omitempty"`
+	// ProxyURL is the URL for a proxy to use when connecting to the API server
+	// + optional
+	ProxyURL *string `yaml:"proxy-url,omitempty"`
 }
 
 // KubeConfig is a representation of a kubeconfig file

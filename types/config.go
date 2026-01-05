@@ -206,6 +206,9 @@ type StoreConfigEKS struct {
 	Region *string `yaml:"region"`
 	// Profile is the named profile to authenticate with https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html
 	Profile string `yaml:"profile"`
+	// ProxyURL is the URL for a proxy to use when connecting to AWS EKS API
+	// + optional
+	ProxyURL *string `yaml:"proxy-url"`
 }
 
 type StoreConfigOTC struct {

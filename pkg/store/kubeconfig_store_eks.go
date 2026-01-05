@@ -243,6 +243,7 @@ func (s *EKSStore) GetKubeconfigForPath(path string, _ map[string]string) ([]byt
 			Cluster: types.Cluster{
 				CertificateAuthorityData: *cluster.CertificateAuthority.Data,
 				Server:                   *cluster.Endpoint,
+				ProxyURL:                 s.Config.ProxyURL,
 			},
 		}},
 		CurrentContext: contextName,
