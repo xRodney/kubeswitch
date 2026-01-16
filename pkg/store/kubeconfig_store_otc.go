@@ -17,11 +17,13 @@ package store
 import (
 	"context"
 	"fmt"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/disiqueira/gotree"
 	golangsdk "github.com/opentelekomcloud/gophertelekomcloud"
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack/cce/v3/clusters"
-	"strings"
-	"time"
 
 	"github.com/opentelekomcloud/gophertelekomcloud/openstack"
 
@@ -199,6 +201,10 @@ func (s *OTCStore) GetKubeconfigForPath(_ string, tags map[string]string) ([]byt
 
 	kubeconfig = s.convertKubeconfig(tags["name"], kubeconfig)
 
+	if s.KubeconfigStore.AutoProxy != nil {
+		kubeconfig = s.addAutoProxyConfig(tags["name"], kubeconfig)
+	}
+
 	configYaml, err := yaml.Marshal(kubeconfig)
 	if err != nil {
 		return nil, fmt.Errorf("unable to marshal cluster kubeconfig: %w", err)
@@ -238,6 +244,37 @@ func (s *OTCStore) convertKubeconfig(name string, kubeconfig map[string]interfac
 
 	selectedContext["name"] = name
 	kubeconfig["contexts"] = []interface{}{selectedContext}
+	return kubeconfig
+}
+
+func (s *OTCStore) addAutoProxyConfig(name string, kubeconfig map[string]interface{}) map[string]interface{} {
+	clusters, ok := kubeconfig["clusters"].([]interface{})
+	if !ok {
+		s.GetLogger().Warnf("clusters in kubeconfig is not an array, skipping auto-proxy config")
+		return kubeconfig
+	}
+
+	for _, cluster := range clusters {
+		clusterMap, ok := cluster.(map[string]interface{})
+		if !ok {
+			s.GetLogger().Warnf("cluster %v is not a map, skipping", cluster)
+			continue
+		}
+
+		clusterDetails, ok := clusterMap["cluster"].(map[string]interface{})
+		if !ok {
+			s.GetLogger().Warnf("cluster details %v is not a map, skipping", clusterMap["cluster"])
+			continue
+		}
+
+		loginPart := fmt.Sprintf("name=%s&kind=%s&cloud=%s",
+			url.QueryEscape(name),
+			url.QueryEscape(string(s.GetKind())),
+			url.QueryEscape(*s.Config.Cloud))
+
+		clusterDetails["proxy-url"] = fmt.Sprintf("http://%s@%s:%d", loginPart, s.KubeconfigStore.AutoProxy.Host, s.KubeconfigStore.AutoProxy.Port)
+	}
+
 	return kubeconfig
 }
 

@@ -91,6 +91,7 @@ type Config struct {
 	Hooks []Hook `yaml:"hooks"`
 	// KubeconfigStores contains the configuration for kubeconfig stores
 	KubeconfigStores []KubeconfigStore `yaml:"kubeconfigStores"`
+	AutoProxy AutoProxyConfig `yaml:"autoProxy"`
 }
 
 type KubeconfigStore struct {
@@ -130,6 +131,7 @@ type KubeconfigStore struct {
 	// Cache allows to cache the kubeconfigs in the backing store
 	// + optional
 	Cache *Cache `yaml:"cache"`
+	AutoProxy *AutoProxyConfig `yaml:"autoProxy"`
 }
 
 // CacheConfig contains the configuration for the cache
@@ -138,6 +140,11 @@ type Cache struct {
 	// Config is store-specific configuration for the cache
 	// Check the documentation for each cache to see configuration options
 	Config interface{} `yaml:"config"`
+}
+
+type AutoProxyConfig struct {
+	Host string `yaml:"host"`
+	Port int `yaml:"port"`
 }
 
 type StoreConfigVault struct {
